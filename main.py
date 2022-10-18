@@ -2,61 +2,78 @@ from GCD import *
 import os
 import datetime
 
-def log_push(file, content, time_):
-    file.write(str(content)+" ")
-    file.write(str(time_) + "\n")
 
-if __name__ == '__main__':
-    gcd = GCD(0, 0)
-    choise = input("Введите 2 числа через пробел: ")
-    choise = choise.split(' ')
+# добавление логов в отдельный файл
+def log_push(file_, content, params):
+    time_ = datetime.datetime.now().time()
+    for i in params:
+        file_.write(i + " ")
+    file_.write(str(content)+" ")
+    print('Result: ' + str(content))
+    file_.write(str(time_) + "\n")
 
-    if not os.path.isdir("logs"):
-        os.mkdir("logs")
 
+# ввод выбора пользоватея
+def choice_user():
+    choice_ = input("Введите 2 числа через пробел: ")
+    choice_ = choice_.split(' ')
+    return choice_
+
+
+# удаление файла логов, кроме созданного в данный момент
+def delete_logs():
+    log_lst = os.listdir("logs")
+    print("File remove:")
+    for log in log_lst[0:-1]:
+        file_rm = "logs/" + log
+        print(file_rm)
+        os.remove(file_rm)
+
+
+# создание имени файла для логов
+def create_filename():
     cur_datetime = datetime.datetime.now()
     cur_date = str(cur_datetime.date()).replace("-", "_")
     cur_time = cur_datetime.time()
     filename = r"logs/{0}_{1}_{2}_{3}_log.txt".format(cur_date, cur_time.hour, cur_time.minute, cur_time.second)
-    file = open(filename, 'w')
+    return filename
 
-    while choise[0]!='q':
-        time_now = datetime.datetime.now().time()
+
+if __name__ == '__main__':
+    gcd = GCD(0, 0)
+    choice = choice_user()
+
+    if not os.path.isdir("logs"):
+        os.mkdir("logs")
+
+    file = open(create_filename(), 'w')
+
+    while choice[0] != 'q':
+
         try:
-            if choise[0] == "rm_logs":
-                log_lst = os.listdir("logs")
-                for log in log_lst[0:-1]:
-                    print("logs/"+log)
-                    os.remove("logs/"+log)
-                choise = input("Введите 2 числа через пробел: ")
-                choise = choise.split(' ')
+            if choice[0] == "rm_logs":
+                delete_logs()
+                choice = choice_user()
                 continue
 
-            file.write(choise[0] + " " + choise[1] + " ")
-            gcd.A = int(float(choise[0]))
-            gcd.B = int(float(choise[1]))
+            gcd.A = int(float(choice[0]))
+            gcd.B = int(float(choice[1]))
+
             if gcd.A == 0 or gcd.B == 0:
-                log_push(file, 'Некорректный ввод', time_now)
-                print('Некорректный ввод')
+                log_push(file, 'Некорректный ввод', choice)
                 file.close()
                 break
 
             if (gcd.Results.get((gcd.A, gcd.B))) is not None:
-                log_push(file, gcd.Results.get((gcd.A, gcd.B)), time_now)
-                print(gcd.Results.get((gcd.A, gcd.B)))
+                log_push(file, gcd.Results.get((gcd.A, gcd.B)), choice)
             elif gcd.Results.get((gcd.B, gcd.A)) is not None:
-                log_push(file, gcd.Results.get((gcd.B, gcd.A)), time_now)
-                print(gcd.Results.get((gcd.B, gcd.A)))
+                log_push(file, gcd.Results.get((gcd.B, gcd.A)), choice)
             else:
-                log_push(file, gcd.calc(), time_now)
-                print(gcd.calc())
+                log_push(file, gcd.calc(), choice)
 
+        except Exception:
+            log_push(file, 'Некорректный ввод', choice)
 
-        except:
-            log_push(file, 'Некорректный ввод', time_now)
-            print('Некорректный ввод')
-
-        choise = input("Введите 2 числа через пробел: ")
-        choise = choise.split(' ')
+        choice = choice_user()
 
     file.close()
