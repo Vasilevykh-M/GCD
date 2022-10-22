@@ -1,20 +1,21 @@
-from GCD import *
 import os
 import datetime
+from GCD import *
 
 
 # добавление логов в отдельный файл
-def log_push(file_, content, params):
+def push_log(file_, content, params, log = False):
     time_ = datetime.datetime.now().time()
     for i in params:
         file_.write(i + " ")
-    file_.write(str(content)+" ")
-    print('Result: ' + str(content))
+    file_.write(str(content) + (" Получено из логов" if log else "") + " ")
     file_.write(str(time_) + "\n")
 
+def write_console(content, log = False):
+    print("Result: " + str(content) + (" Получено из логов" if log else ""))
 
 # ввод выбора пользоватея
-def choice_user():
+def get_user_input():
     choice_ = input("Введите 2 числа через пробел: ")
     choice_ = choice_.split(' ')
     return choice_
@@ -24,7 +25,7 @@ def choice_user():
 def delete_logs():
     log_lst = os.listdir("logs")
     print("File remove:")
-    for log in log_lst[0:-1]:
+    for log in log_lst[:-1]:
         file_rm = "logs/" + log
         print(file_rm)
         os.remove(file_rm)
@@ -41,39 +42,49 @@ def create_filename():
 
 if __name__ == '__main__':
     gcd = GCD(0, 0)
-    choice = choice_user()
 
     if not os.path.isdir("logs"):
         os.mkdir("logs")
 
     file = open(create_filename(), 'w')
 
+    print("Привет пользователь.\n"
+          "Данная программа умеет считать НОД 2 чисел.")
+
+    choice = get_user_input()
+
     while choice[0] != 'q':
 
         try:
             if choice[0] == "rm_logs":
                 delete_logs()
-                choice = choice_user()
+                choice = get_user_input()
                 continue
 
-            gcd.A = int(float(choice[0]))
-            gcd.B = int(float(choice[1]))
+            gcd.a = int(float(choice[0]))
+            gcd.b = int(float(choice[1]))
 
-            if gcd.A == 0 or gcd.B == 0:
-                log_push(file, 'Некорректный ввод', choice)
+            if gcd.a == 0 or gcd.b == 0:
+                push_log(file, 'Некорректный ввод', choice)
+                write_console('Некорректный ввод')
                 file.close()
                 break
 
-            if (gcd.Results.get((gcd.A, gcd.B))) is not None:
-                log_push(file, gcd.Results.get((gcd.A, gcd.B)), choice)
-            elif gcd.Results.get((gcd.B, gcd.A)) is not None:
-                log_push(file, gcd.Results.get((gcd.B, gcd.A)), choice)
+            if (gcd.Results.get((gcd.a, gcd.b))) is not None:
+                push_log(file, gcd.Results.get((gcd.a, gcd.b)), choice, True)
+                write_console(gcd.Results.get((gcd.a, gcd.b)), True)
+            elif gcd.Results.get((gcd.b, gcd.a)) is not None:
+                push_log(file, gcd.Results.get((gcd.b, gcd.a)), choice, True)
+                write_console(gcd.Results.get((gcd.b, gcd.a)), True)
             else:
-                log_push(file, gcd.calc(), choice)
+                rez = gcd.calc()
+                push_log(file, rez, choice)
+                write_console(rez)
 
         except Exception:
-            log_push(file, 'Некорректный ввод', choice)
+            push_log(file, 'Некорректный ввод', choice)
+            write_console('Некорректный ввод')
 
-        choice = choice_user()
-
+        choice = get_user_input()
+    print('Пока пользователь')
     file.close()
